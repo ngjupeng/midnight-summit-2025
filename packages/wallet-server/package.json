@@ -1,0 +1,33 @@
+{
+  "name": "@ss-2/wallet-server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/index.ts",
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@midnight-ntwrk/compact-runtime": "0.9.0",
+    "@midnight-ntwrk/ledger": "4.0.0",
+    "@midnight-ntwrk/midnight-js-network-id": "2.0.2",
+    "@midnight-ntwrk/wallet": "5.0.0",
+    "@midnight-ntwrk/wallet-sdk-address-format": "2.0.0",
+    "@midnight-ntwrk/wallet-sdk-hd": "2.0.0",
+    "@midnight-ntwrk/zswap": "4.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "envfile": "^6.18.0",
+    "express": "^4.18.2",
+    "rxjs": "^7.8.1",
+    "starknet": "8.5.3"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22",
+    "tsx": "^4.7.0",
+    "typescript": "^5"
+  }
+}
