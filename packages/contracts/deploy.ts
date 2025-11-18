@@ -111,7 +111,8 @@ async function main() {
     console.log(`Balance: ${balance}`);
     // Load compiled contract files
     console.log("Loading contract...");
-    const contractPath = path.join(process.cwd(), "contracts");
+    const contractPath = path.join(process.cwd());
+    console.log("Contract path: ", contractPath);
     const contractModulePath = path.join(
       contractPath,
       "managed",

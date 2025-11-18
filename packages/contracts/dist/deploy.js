@@ -69,14 +69,15 @@ async function main() {
         console.log(`Balance: ${balance}`);
         // Load compiled contract files
         console.log("Loading contract...");
-        const contractPath = path.join(process.cwd(), "contracts");
-        const contractModulePath = path.join(contractPath, "managed", "hello-world", "contract", "index.cjs");
+        const contractPath = path.join(process.cwd());
+        console.log("Contract path: ", contractPath);
+        const contractModulePath = path.join(contractPath, "managed", "bridge", "contract", "index.cjs");
         if (!fs.existsSync(contractModulePath)) {
             console.error("Contract not found! Run: npm run compile");
             process.exit(1);
         }
-        const HelloWorldModule = await import(contractModulePath);
-        const contractInstance = new HelloWorldModule.Contract({});
+        const BridgeModule = await import(contractModulePath);
+        const contractInstance = new BridgeModule.Contract({});
         // Create wallet provider for transactions
         const walletState = await Rx.firstValueFrom(wallet.state());
         const walletProvider = {
@@ -95,10 +96,10 @@ async function main() {
         };
         // Configure all required providers
         console.log("Setting up providers...");
-        const zkConfigPath = path.join(contractPath, "managed", "hello-world");
+        const zkConfigPath = path.join(contractPath, "managed", "bridge");
         const providers = {
             privateStateProvider: levelPrivateStateProvider({
-                privateStateStoreName: "hello-world-state",
+                privateStateStoreName: "bridge-state",
             }),
             publicDataProvider: indexerPublicDataProvider(TESTNET_CONFIG.indexer, TESTNET_CONFIG.indexerWS),
             zkConfigProvider: new NodeZkConfigProvider(zkConfigPath),
@@ -110,7 +111,7 @@ async function main() {
         console.log("Deploying contract (30-60 seconds)...");
         const deployed = await deployContract(providers, {
             contract: contractInstance,
-            privateStateId: "helloWorldState",
+            privateStateId: "bridgeState",
             initialPrivateState: {},
         });
         const contractAddress = deployed.deployTxData.public.contractAddress;

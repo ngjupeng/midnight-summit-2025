@@ -1,0 +1,114 @@
+pragma language_version 0.18;
+
+import CompactStandardLibrary;
+
+// Public state: Map to store commitments (commitmentId -> commitmentHash)
+export ledger commitments: Map<Bytes<32>, Bytes<32>>;
+
+// Public state: Counter for generating unique commitment IDs
+export ledger nextCommitmentId: Counter;
+
+// Private witness structure for compliance data
+// This data stays private and is only used to create the commitment hash
+struct ComplianceData {
+    sender: Bytes<32>;
+    recipient: Bytes<32>;
+    amount: Uint<128>;
+    timestamp: Uint<64>;
+}
+
+// Circuit: Transfer tokens with compliance commitment
+// This creates a commitment hash from private compliance data and stores it
+export circuit transfer_with_compliance(
+    coin: QualifiedCoinInfo,
+    recipient: Either<ZswapCoinPublicKey, ContractAddress>,
+    amount: Uint<128>,
+    complianceData: ComplianceData
+): Bytes<32> {
+    // DEBUG: Validate amount is positive
+    assert(disclose(amount) > 0 as Uint<128>, "DEBUG: Amount must be greater than zero");
+    
+    // DEBUG: Validate coin has sufficient value
+    assert(coin.value >= disclose(amount), "DEBUG: Insufficient coin value - coin.value must be >= amount");
+    
+    // DEBUG: Validate compliance data amount matches transfer amount
+    assert(disclose(complianceData.amount) == disclose(amount), "DEBUG: Compliance data amount must match transfer amount");
+    
+    // Generate unique commitment ID from transaction data
+    // This ensures each transfer gets a unique, deterministic ID
+    const commitmentId = persistentHash<Vector<4, Bytes<32>>>([
+        disclose(complianceData.sender),
+        disclose(complianceData.recipient),
+        persistentHash<Uint<128>>(disclose(complianceData.amount)),
+        persistentHash<Uint<64>>(disclose(complianceData.timestamp))
+    ]);
+    
+    // DEBUG: Validate commitment ID was generated
+    const zeroBytes: Bytes<32> = pad(32, "");
+    assert(commitmentId != zeroBytes, "DEBUG: Commitment ID generation failed");
+    
+    // Create commitment hash from witness data
+    // Combine: sender (32 bytes) + recipient (32 bytes) + amount (16 bytes) + timestamp (8 bytes)
+    const commitmentHash = persistentHash<Vector<4, Bytes<32>>>([
+        disclose(complianceData.sender),
+        disclose(complianceData.recipient),
+        persistentHash<Uint<128>>(disclose(complianceData.amount)),
+        persistentHash<Uint<64>>(disclose(complianceData.timestamp))
+    ]);
+    
+    // DEBUG: Validate commitment hash was generated
+    assert(commitmentHash != zeroBytes, "DEBUG: Commitment hash generation failed");
+    
+    // Store commitment hash in ledger
+    commitments.insert(commitmentId, commitmentHash);
+    
+    // DEBUG: Verify commitment was stored (check if it exists)
+    assert(commitments.member(commitmentId), "DEBUG: Failed to store commitment in ledger");
+    
+    // Increment commitment ID counter for next use
+    nextCommitmentId.increment(1);
+    
+    // Execute token transfer using send from CompactStandardLibrary
+    send(disclose(coin), disclose(recipient), disclose(amount));
+    
+    // Return the commitment ID for later revelation
+    return commitmentId;
+}
+
+// Circuit: Reveal and verify a commitment
+// This allows authorized parties to reveal compliance data and verify it matches the stored commitment
+export circuit reveal_commitment(
+    commitmentId: Bytes<32>,
+    complianceData: ComplianceData
+): Boolean {
+    // DEBUG: Validate commitment ID is not zero
+    const zeroBytes: Bytes<32> = pad(32, "");
+    assert(disclose(commitmentId) != zeroBytes, "DEBUG: Commitment ID cannot be zero");
+    
+    // DEBUG: Check if commitment exists in ledger
+    assert(commitments.member(disclose(commitmentId)), "DEBUG: Commitment not found in ledger - invalid commitmentId");
+    
+    // Retrieve stored commitment hash from ledger
+    const storedHash = commitments.lookup(disclose(commitmentId));
+    
+    // DEBUG: Validate stored hash is not zero
+    assert(storedHash != zeroBytes, "DEBUG: Stored commitment hash is zero - data corruption");
+    
+    // Recreate commitment hash from npm run deploy
+ data
+    const computedHash = persistentHash<Vector<4, Bytes<32>>>([
+        disclose(complianceData.sender),
+        disclose(complianceData.recipient),
+        persistentHash<Uint<128>>(disclose(complianceData.amount)),
+        persistentHash<Uint<64>>(disclose(complianceData.timestamp))
+    ]);
+    
+    // DEBUG: Validate computed hash was generated
+    assert(computedHash != zeroBytes, "DEBUG: Computed hash generation failed");
+    
+    // Verify that computed hash matches stored hash
+    assert(computedHash == storedHash, "DEBUG: Commitment hash mismatch - provided compliance data does not match stored commitment");
+    
+    // If we reach here, commitment is valid
+    return true;
+}

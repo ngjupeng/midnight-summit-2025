@@ -3,13 +3,13 @@ pragma language_version >= 0.16 && <= 0.17;
 import CompactStandardLibrary;
 
 enum BridgeState {
-  PENDING,
+  NOT_INITIATED,
+  INITIATED,
   COMPLETED
 }
 
 export ledger bridgingIntentsState: Map<Bytes<32>, BridgeState>;
 export ledger bridgingIntentsAmount: Map<Bytes<32>, Uint<64>>;
-export ledger sUSDTokenType: Bytes<32>;
 export ledger bridgeCoin: QualifiedCoinInfo;
 
 export circuit initiateBridge(secretHashed: Bytes<32>, amount: Uint<64>, coin: CoinInfo): [] {
@@ -23,8 +23,6 @@ export circuit initiateBridge(secretHashed: Bytes<32>, amount: Uint<64>, coin: C
     // transfer fund from caller to contract
     const disclosedCoin = disclose(coin);
 
-    assert(coin.color == sUSDTokenType, "Invalid token type");
-    assert(coin.value == amount, "Exact amount required");
 
     receive(disclosedCoin);
 
@@ -40,7 +38,7 @@ export circuit initiateBridge(secretHashed: Bytes<32>, amount: Uint<64>, coin: C
         );
     }
     // store the secretHashed in bridgingIntentsState
-    bridgingIntentsState.insert(disclosedSecretHashed, BridgeState.PENDING);
+    bridgingIntentsState.insert(disclosedSecretHashed, BridgeState.INITIATED);
     bridgingIntentsAmount.insert(disclosedSecretHashed, disclose(amount));
 
     return;
@@ -48,15 +46,31 @@ export circuit initiateBridge(secretHashed: Bytes<32>, amount: Uint<64>, coin: C
 
 export circuit completeBridge(secret: Bytes<32>): [] {
     // hash the secret
+    const hashedSecret = persistentHash<Bytes<32>>(secret);
 
     // read the hashedSecret from bridgingIntents to know if its exist
+    if(!bridgingIntentsState.member(disclose(hashedSecret))) {
+        return;
+    }
 
     // if exist and is PENDING
+    if(bridgingIntentsState.lookup(disclose(hashedSecret)) == BridgeState.INITIATED) {
+        const user = ownPublicKey();
+        // release fund to caller
+        const sendResult = send(
+            bridgeCoin,
+            left<ZswapCoinPublicKey, ContractAddress>(user),
+            bridgingIntentsAmount.lookup(disclose(hashedSecret))
+        );
+        
+        if (sendResult.change.is_some) {
+            bridgeCoin.writeCoin(
+            sendResult.change.value,
+            right<ZswapCoinPublicKey, ContractAddress>(kernel.self())
+            );
+        } else {
+            bridgeCoin.resetToDefault();
+        }
+    }
 
-    // release fund to caller
-}
-
-export circuit setSUSDTokenType(): Bytes<32> {
-    sUSDTokenType = tokenType(pad(32, "sUSD_token"), kernel.self());
-    return disclose(sUSDTokenType);
 }

@@ -57,7 +57,7 @@
     },
     {
       "name": "completeBridge",
-      "pure": true,
+      "pure": false,
       "arguments": [
         {
           "name": "secret",
@@ -71,16 +71,6 @@
         "type-name": "Tuple",
         "types": [
         ]
-      }
-    },
-    {
-      "name": "setSUSDTokenType",
-      "pure": false,
-      "arguments": [
-      ],
-      "result-type": {
-        "type-name": "Bytes",
-        "length": 32
       }
     }
   ],

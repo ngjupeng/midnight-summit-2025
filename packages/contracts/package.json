@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "compile": "compact compile contracts/hello-world.compact contracts/managed/hello-world",
+    "compile-bridge": "compact compile contracts/bridge.compact contracts/managed/bridge",
     "build": "tsc",
     "deploy": "node dist/deploy.js"
   },

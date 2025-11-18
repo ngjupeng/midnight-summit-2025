@@ -8,11 +8,11 @@ export type ImpureCircuits<T> = {
                  secretHashed_0: Uint8Array,
                  amount_0: bigint,
                  coin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<T, []>;
-  setSUSDTokenType(context: __compactRuntime.CircuitContext<T>): __compactRuntime.CircuitResults<T, Uint8Array>;
+  completeBridge(context: __compactRuntime.CircuitContext<T>,
+                 secret_0: Uint8Array): __compactRuntime.CircuitResults<T, []>;
 }
 
 export type PureCircuits = {
-  completeBridge(secret_0: Uint8Array): [];
 }
 
 export type Circuits<T> = {
@@ -22,7 +22,6 @@ export type Circuits<T> = {
                  coin_0: { nonce: Uint8Array, color: Uint8Array, value: bigint }): __compactRuntime.CircuitResults<T, []>;
   completeBridge(context: __compactRuntime.CircuitContext<T>,
                  secret_0: Uint8Array): __compactRuntime.CircuitResults<T, []>;
-  setSUSDTokenType(context: __compactRuntime.CircuitContext<T>): __compactRuntime.CircuitResults<T, Uint8Array>;
 }
 
 export type Ledger = {
@@ -40,7 +39,6 @@ export type Ledger = {
     lookup(key_0: Uint8Array): bigint;
     [Symbol.iterator](): Iterator<[Uint8Array, bigint]>
   };
-  readonly sUSDTokenType: Uint8Array;
   readonly bridgeCoin: { nonce: Uint8Array,
                          color: Uint8Array,
                          value: bigint,

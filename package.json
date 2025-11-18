@@ -31,7 +31,8 @@
     "vercel:yolo": "yarn workspace @ss-2/nextjs vercel:yolo",
     "verify": "yarn workspace @ss-2/snfoundry verify",
     "wallet-server": "yarn workspace @ss-2/wallet-server dev",
-    "compact": "compact compile ./packages/contracts/bridge.compact ./packages/contracts/managed/bridge"
+    "compact-bridge": "compact compile ./packages/contracts/bridge.compact ./packages/contracts/managed/bridge",
+    "compact-compliance-transfer": "compact compile ./packages/contracts/compliance-transfer.compact ./packages/contracts/managed/compliance-transfer"
   },
   "dependencies": {
     "postcss": "^8.4.38"
