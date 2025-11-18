@@ -1,0 +1,62 @@
+pragma language_version >= 0.16 && <= 0.17;
+
+import CompactStandardLibrary;
+
+enum BridgeState {
+  PENDING,
+  COMPLETED
+}
+
+export ledger bridgingIntentsState: Map<Bytes<32>, BridgeState>;
+export ledger bridgingIntentsAmount: Map<Bytes<32>, Uint<64>>;
+export ledger sUSDTokenType: Bytes<32>;
+export ledger bridgeCoin: QualifiedCoinInfo;
+
+export circuit initiateBridge(secretHashed: Bytes<32>, amount: Uint<64>, coin: CoinInfo): [] {
+    const disclosedSecretHashed = disclose(secretHashed);
+
+    // if already initiated
+    if (bridgingIntentsState.member(disclosedSecretHashed)) {
+        return;
+    }
+
+    // transfer fund from caller to contract
+    const disclosedCoin = disclose(coin);
+
+    assert(coin.color == sUSDTokenType, "Invalid token type");
+    assert(coin.value == amount, "Exact amount required");
+
+    receive(disclosedCoin);
+
+    if (bridgeCoin.value == 0) {
+        bridgeCoin.writeCoin(
+        disclosedCoin,
+        right<ZswapCoinPublicKey, ContractAddress>(kernel.self())
+        );
+    } else {
+        bridgeCoin.writeCoin(
+        mergeCoinImmediate(bridgeCoin, disclosedCoin),
+        right<ZswapCoinPublicKey, ContractAddress>(kernel.self())
+        );
+    }
+    // store the secretHashed in bridgingIntentsState
+    bridgingIntentsState.insert(disclosedSecretHashed, BridgeState.PENDING);
+    bridgingIntentsAmount.insert(disclosedSecretHashed, disclose(amount));
+
+    return;
+}
+
+export circuit completeBridge(secret: Bytes<32>): [] {
+    // hash the secret
+
+    // read the hashedSecret from bridgingIntents to know if its exist
+
+    // if exist and is PENDING
+
+    // release fund to caller
+}
+
+export circuit setSUSDTokenType(): Bytes<32> {
+    sUSDTokenType = tokenType(pad(32, "sUSD_token"), kernel.self());
+    return disclose(sUSDTokenType);
+}
