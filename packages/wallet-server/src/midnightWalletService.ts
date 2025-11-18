@@ -8,6 +8,7 @@ import { nativeToken } from "@midnight-ntwrk/zswap";
 import { firstValueFrom } from "rxjs";
 import { readWalletFromEnv } from "./envUtils.js";
 import { MIDNIGHT_TESTNET_CONFIG } from "./config.js";
+import * as Rx from "rxjs";
 
 let walletInstance: Awaited<ReturnType<typeof WalletBuilder.build>> | null =
   null;
@@ -133,7 +134,10 @@ export async function checkBalanceFromSeed(seed: string): Promise<{
   // Wait for wallet to initialize and sync
   console.log("⏳ Syncing wallet...");
   await new Promise((resolve) => setTimeout(resolve, 3000));
-
+  // Wait for sync
+  await Rx.firstValueFrom(
+    wallet.state().pipe(Rx.filter((s) => s.syncProgress?.synced === true))
+  );
   // Get wallet state
   const state = await firstValueFrom(wallet.state());
   const balance = state.balances[nativeToken()] || 0n;

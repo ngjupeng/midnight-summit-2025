@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "compile-bridge": "compact compile contracts/bridge.compact contracts/managed/bridge",
+    "bridge-cli": "node dist/cli/bridge-cli.js",
     "build": "tsc",
     "deploy": "node dist/deploy.js"
   },
