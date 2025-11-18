@@ -25,3 +25,7 @@ Future we can enable people making payment from any chain, or even privacy proto
 1. Install dependencies by running `yarn`
 2. Open new terminal, run `yarn start`
 3. Open another terminal, run `yarn wallet-server`
+
+
+
+Demo: https://www.canva.com/design/DAG5DuyX8gk/2556rErKXaOhBU7zjVZw1g/watch?utm_content=DAG5DuyX8gk&utm_campaign=designshare&utm_medium=link2&utm_source=uniquelinks&utlId=h3ed3a468bf
